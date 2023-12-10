@@ -1,0 +1,13 @@
+#!/bin/bash
+
+pushd /tmp || true
+tar -xf /tmp/apache-activemq-6.0.0-bin.tar.gz -C /usr/share
+useradd activemq
+chown activemq:root -R /usr/share/apache-activemq-6.0.0
+rm apache-activemq-6.0.0-bin.tar.gz
+cp conf/* /usr/share/apache-activemq-6.0.0/conf
+rm -r conf
+popd || true
+
+deb-systemd-invoke enable activemq.service
+deb-systemd-invoke start activemq.service
