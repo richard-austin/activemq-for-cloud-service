@@ -3,7 +3,9 @@
 
 *This is required when you want to access 1 or more security-cam NVRs
 through the ActiveMQ version of the Cloud Server. It is not required for
-direct access to the NVR*
+direct access to the NVR* 
+
+### Note that this is experimental and has so far been found to be less performant than the original version where the NVRs make a direct socket connection to the Cloud server.
 
 ### Overview
 * Creates an installer (deb file) for ActiveMQ configured for ssl and
