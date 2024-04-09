@@ -3,36 +3,10 @@
 echo Set up key and trust stores for ActiveMQ, NVR and Cloud Server
 echo The personal and geographic information you enter will be used on both the client and broker certs.
 echo
-while : ; do
-  read -rsp "Enter broker keystore password: " kspassword_broker
-  echo
-  read -rsp "Re-enter new password: " confirmkspassword_broker
-  echo
-  if [ "$kspassword_broker" != "$confirmkspassword_broker" ];
-  then
-    echo Passwords, don\'t match, please re-enter
-  elif [ ${#kspassword_broker} -lt 6 ]
-  then
-    echo You must entrer a password of at least 6 characters
-  else
-    break
-  fi
-done
-while : ; do
-  read -rsp "Enter client keystore password: " kspassword_client
-  echo
-  read -rsp "Re-enter new password: " confirmkspassword_client
-  echo
-  if [ "$kspassword_client" != "$confirmkspassword_client" ];
-  then
-    echo Passwords, don\'t match, please re-enter
-  elif [ ${#kspassword_client} -lt 6 ]
-  then
-    echo You must enter a password of at least 6 characters
-  else
-    break
-  fi
-done
+kspassword_broker=$(tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 40)
+kspassword_client=$(tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 40)
+tspassword_client=$(tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 40)
+cloudUserPassword=$(tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 40)
 declare -r u="[Unknown]"
 while : ; do
   echo Enter the distinguished name. Provide a single dot \(.\) to leave a sub-component empty or press ENTER to use the default value \[Unknown\].
@@ -56,5 +30,14 @@ while : ; do
 done
 keytool -genkey -alias broker -dname "cn=$cn, ou=$ou, o=$o, c=$c st=$st" -keypass "$kspassword_broker" -storepass "$kspassword_broker" -keyalg RSA -keystore broker.ks
 keytool -export -alias broker -storepass "$kspassword_broker" -keystore broker.ks -file broker_cert
+keytool -genkey -alias client -dname "cn=$cn, ou=$ou, o=$o, c=$c st=$st" -keypass "$kspassword_client" -storepass "$tspassword_client" -keyalg RSA -keystore client.ks
+keytool -import -noprompt -alias broker -storepass "$kspassword_client" -keystore client.ts -file broker_cert
 
+# Put the broker keystore in Active MQ config directory
+mv broker.ks ../deb-file-creation/conf
 
+# Update the password in the activemq.xml config file
+xml ed -N x="http://activemq.apache.org/schema/core" -u "//x:plugins/x:simpleAuthenticationPlugin/x:users/x:authenticationUser[@username='cloud']/@password" -v "$cloudUserPassword" ../deb-file-creation/conf/activemq.xml > tmp.xml
+xml ed -N x="http://activemq.apache.org/schema/core" -u "//x:sslContext/x:sslContext[@keyStore='file:conf/broker.ks']/@keyStorePassword" -v "$kspassword_broker" tmp.xml > newfile.xml
+rm tmp.xml
+mv newfile.xml ../deb-file-creation/conf/activemq.xml
