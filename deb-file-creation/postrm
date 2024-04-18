@@ -1,0 +1,6 @@
+#!/bin/bash
+
+if [ "$1" == purge ] ; then
+  rm -r /usr/share/apache-activemq-6.0.0/
+fi
+

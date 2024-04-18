@@ -2,8 +2,6 @@
 
 deb-systemd-invoke disable activemq.service
 deb-systemd-invoke stop activemq.service
-
 pushd /usr/share || true
-rm -r apache-activemq-6.0.0
 userdel activemq
 popd || true
