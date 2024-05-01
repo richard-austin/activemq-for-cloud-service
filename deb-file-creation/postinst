@@ -1,13 +1,43 @@
 #!/bin/bash
 
 pushd /tmp || true
-tar -xf /tmp/apache-activemq-6.0.0-bin.tar.gz -C /usr/share
+# tar -xf /tmp/apache-activemq-6.0.0-bin.tar.gz -C /usr/share
 useradd activemq
 chown activemq:root -R /usr/share/apache-activemq-6.0.0
-rm apache-activemq-6.0.0-bin.tar.gz
-cp conf/* /usr/share/apache-activemq-6.0.0/conf
-rm -r conf
 popd || true
+
+# keyStorePassword=$(xmlstarlet select -N x="http://activemq.apache.org/schema/core" -t -v "//x:sslContext/x:sslContext[@keyStore='file:conf/broker.ks']/@keyStorePassword" /usr/share/apache-activemq-6.0.0/conf/activemq.xml)
+
+if ! test -f  /usr/share/apache-activemq-6.0.0/conf/activemq.xml ; then
+  mv /tmp/conf/activemq.xml /tmp/conf/users.properties /usr/share/apache-activemq-6.0.0/conf
+  rm -r /tmp/conf
+
+  kspassword_broker=$(tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 40)
+  tspassword_client=$(tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 40)
+  cloudUserPassword=$(tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 20)
+  declare -r u="[Unknown]"
+  cn=${cn:-$u}
+  ou=${ou:-$u}
+  o=${o:-$u}
+  c=${c:-$u}
+  st=${st:-$u}
+
+  keytool -genkey -alias broker -dname "cn=$cn, ou=$ou, o=$o, c=$c st=$st" -keypass "$kspassword_broker" -storepass "$kspassword_broker" -keyalg RSA -keystore /usr/share/apache-activemq-6.0.0/conf/broker.ks
+  keytool -export -alias broker -storepass "$kspassword_broker" -keystore /usr/share/apache-activemq-6.0.0/conf/broker.ks -file /usr/share/apache-activemq-6.0.0/conf/broker_cert
+  # keytool -genkey -alias client -dname "cn=$cn, ou=$ou, o=$o, c=$c st=$st" -keypass "$kspassword_client" -storepass "$kspassword_client" -keyalg RSA -keystore client.ks
+  keytool -import -noprompt -alias broker -storepass "$kspassword_broker" -keystore "$(getent passwd "$SUDO_USER" | cut -d: -f6)/client.ts" -file /usr/share/apache-activemq-6.0.0/conf/broker_cert
+
+
+  # Update the password in the activemq.xml config file
+  xmlstarlet ed -N x="http://activemq.apache.org/schema/core" -u "//x:sslContext/x:sslContext[@keyStore='file:conf/broker.ks']/@keyStorePassword" -v "$kspassword_broker" /usr/share/apache-activemq-6.0.0/conf/activemq.xml > /tmp/activemq.xml
+  mv /tmp/activemq.xml /usr/share/apache-activemq-6.0.0/conf/activemq.xml
+  xmlstarlet ed -N x="http://activemq.apache.org/schema/core" -u "//x:plugins/x:simpleAuthenticationPlugin/x:users/x:authenticationUser[@username='cloud']/@password" -v "$cloudUserPassword" /usr/share/apache-activemq-6.0.0/conf/activemq.xml > /tmp/activemq.xml
+  mv /tmp/activemq.xml /usr/share/apache-activemq-6.0.0/conf/activemq.xml
+
+  echo "ActiveMQ user: cloud"
+  echo "ActiveMQ password: $cloudUserPassword"
+  echo "Client truststore is at $(getent passwd "$SUDO_USER" | cut -d: -f6): Client Truststore password: $tspassword_client"
+fi
 
 deb-systemd-invoke enable activemq.service
 deb-systemd-invoke start activemq.service
