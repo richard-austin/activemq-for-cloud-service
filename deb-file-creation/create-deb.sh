@@ -9,6 +9,9 @@ mkdir -p activemq-for-cloud-service_"${VERSION}"_arm64/DEBIAN
 cp postinst prerm postrm activemq-for-cloud-service_"${VERSION}"_arm64/DEBIAN
 mkdir -p activemq-for-cloud-service_"${VERSION}"_arm64/usr/share
 tar -xf apache-activemq-6.0.0-bin.tar.gz -C activemq-for-cloud-service_"${VERSION}"_arm64/usr/share
+# Take the config file out of the path and put in /tmp. Put it in place if there isn't already an (updated) copy in place
+#  activemq.xml automatically has new cloud user and keystore credentials created for it on 1st installation
+mv activemq-for-cloud-service_"${VERSION}"_arm64/usr/share/apache-activemq-6.0.0/conf/activemq.xml /tmp
 # Remove the broker key and trust stores as the keystore will be recreated (on a new installation) or retained on installation
 rm activemq-for-cloud-service_"${VERSION}"_arm64/usr/share/apache-activemq-6.0.0/conf/broker.ks activemq-for-cloud-service_"${VERSION}"_arm64/usr/share/apache-activemq-6.0.0/conf/broker.ts
 
