@@ -3,6 +3,8 @@
 export VERSION
 VERSION=$(< version.txt)
 
+rm -r activemq-for-cloud-service_*_arm64
+
 mkdir -p activemq-for-cloud-service_"${VERSION}"_arm64/tmp/
 cp -r conf activemq-for-cloud-service_"${VERSION}"_arm64/tmp
 mkdir -p activemq-for-cloud-service_"${VERSION}"_arm64/DEBIAN
