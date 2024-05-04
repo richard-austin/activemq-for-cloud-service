@@ -24,3 +24,24 @@ mqURL on the Cloud server and all relevant NVRs are set to include the correct h
 * from the project home directory (activemq-for-cloud-service), run ./gradlew buildDebFile. The deb file will be created at
 the sub directory deb-file-creation. As supplied, this is set for installation on an arm84 Ubuntu 23.10 platform. 
 
+### Install ActiveMQ 
+* Copy the .deb file created by the build to the target machine. The default build is for a Raspberry pi 4 or 5
+running Ubuntu 23.10
+* Install with the following command: -
+  ```bash
+  sudo apt install ./activemq-for-cloud-service_/[version]_arm64.deb
+  
+  # Where [version] is the relevant version part of the .deb file name.
+  ```
+* If this is the first installation, a user name and password will be shown towards the end of the installation text.
+This is a randomly generated password that the NVR and Cloud server must use to connect to ActiveMQ.
+  ```agsl
+  Example: -
+  
+  ActiveMQ user: cloud
+  ActiveMQ password: ueCqt4hxvdRZ5qnx2p0g
+  ```
+#### The credentials generated on initial installation should be noted as they will be required on the Cloud server and any NVRs which are to be accessed through the Cloud server.
+  
+
+
