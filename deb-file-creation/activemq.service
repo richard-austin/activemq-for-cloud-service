@@ -5,6 +5,7 @@ After=network-online.target
 
 [Service]
 Type=forking
+Environment="JAVA_HOME=/usr/lib/jvm/java-1.17.0-openjdk-arm64"
 WorkingDirectory=/usr/share/apache-activemq-6.0.0
 ExecStart=/usr/share/apache-activemq-6.0.0/bin/activemq start
 ExecStop=/usr/share/apache-activemq-6.0.0/bin/activemq stop

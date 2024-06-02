@@ -27,7 +27,7 @@ Architecture: arm64
 Maintainer: Richard Austin <richard.david.austin@gmail.com>
 Description: ActiveMQ messaging service which links security-cam NVRs to the Cloud Service
 Depends: xmlstarlet,
-         openjdk-19-jre-headless (>=19.0.2), openjdk-19-jre-headless (<< 19.9.9)
+         openjdk-17-jre-headless (>=17.0.0), openjdk-17-jre-headless (<< 17.9.9)
 EOF
 
 dpkg-deb --build --root-owner-group activemq-for-cloud-service_"${VERSION}"_arm64
